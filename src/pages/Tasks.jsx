@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getMyTasks, createTask, updateTaskStatus, deleteTask, assignTask, getAssignedTasks } from '../api';
+import { getMyTasks, createTask, updateTaskStatus, deleteTask, assignTask, getAssignedTasks, updateTask } from '../api';
 import { useNavigate } from 'react-router-dom';
 import './Tasks.css';
 
@@ -15,6 +15,8 @@ const Tasks = () => {
   const [assignEmails, setAssignEmails] = useState({});
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editTaskData, setEditTaskData] = useState({ title: '', description: '', status: '', dueDate: '' });
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
@@ -108,6 +110,38 @@ const Tasks = () => {
     }
   };
 
+  const startEditTask = (task) => {
+    setEditingTaskId(task.id);
+    setEditTaskData({
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      dueDate: new Date(task.dueDate).toISOString().slice(0, 10),
+    });
+  };
+
+  const cancelEditTask = () => {
+    setEditingTaskId(null);
+    setEditTaskData({ title: '', description: '', status: '', dueDate: '' });
+  };
+
+  const handleSaveEdit = async (taskId) => {
+    try {
+      const payload = {
+        title: editTaskData.title,
+        description: editTaskData.description,
+        status: editTaskData.status,
+        dueDate: editTaskData.dueDate,
+      };
+      const response = await updateTask(taskId, payload, token);
+      const updated = response.data;
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated } : t)));
+      cancelEditTask();
+    } catch (err) {
+      setError('ไม่สามารถแก้ไขงานได้');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
@@ -186,7 +220,15 @@ const Tasks = () => {
                 {tasks.map((task) => (
                   <div key={task.id} className="task-card">
                     <div className="task-header">
-                      <h3>{task.title}</h3>
+                      {editingTaskId === task.id ? (
+                        <input
+                          type="text"
+                          value={editTaskData.title}
+                          onChange={(e) => setEditTaskData({ ...editTaskData, title: e.target.value })}
+                        />
+                      ) : (
+                        <h3>{task.title}</h3>
+                      )}
                       <button 
                         className="delete-btn"
                         onClick={() => handleDeleteTask(task.id)}
@@ -194,15 +236,43 @@ const Tasks = () => {
                         ×
                       </button>
                     </div>
-                    <p className="task-description">{task.description}</p>
+                    {editingTaskId === task.id ? (
+                      <textarea
+                        className="task-description"
+                        value={editTaskData.description}
+                        onChange={(e) => setEditTaskData({ ...editTaskData, description: e.target.value })}
+                      />
+                    ) : (
+                      <p className="task-description">{task.description}</p>
+                    )}
                     
                     <div className="task-meta">
-                      <span className={`status-badge ${task.status.replace(' ', '-').toLowerCase()}`}>
-                        {task.status}
-                      </span>
-                      <span className="due-date">
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
-                      </span>
+                      {editingTaskId === task.id ? (
+                        <>
+                          <select
+                            value={editTaskData.status}
+                            onChange={(e) => setEditTaskData({ ...editTaskData, status: e.target.value })}
+                          >
+                            <option value="To Do">To Do</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                          </select>
+                          <input
+                            type="date"
+                            value={editTaskData.dueDate}
+                            onChange={(e) => setEditTaskData({ ...editTaskData, dueDate: e.target.value })}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <span className={`status-badge ${task.status.replace(' ', '-').toLowerCase()}`}>
+                            {task.status}
+                          </span>
+                          <span className="due-date">
+                            Due: {new Date(task.dueDate).toLocaleDateString()}
+                          </span>
+                        </>
+                      )}
                     </div>
                     
                     <div className="assign-section">
@@ -236,18 +306,28 @@ const Tasks = () => {
                     </div>
                     
                     <div className="task-actions">
-                      <button 
-                        className={`action-btn ${task.status === 'In Progress' ? 'active' : ''}`}
-                        onClick={() => handleUpdateStatus(task.id, 'In Progress')}
-                      >
-                        Start
-                      </button>
-                      <button 
-                        className={`action-btn ${task.status === 'Completed' ? 'active' : ''}`}
-                        onClick={() => handleUpdateStatus(task.id, 'Completed')}
-                      >
-                        Complete
-                      </button>
+                      {editingTaskId === task.id ? (
+                        <>
+                          <button className="action-btn" onClick={() => handleSaveEdit(task.id)}>Save</button>
+                          <button className="action-btn" onClick={cancelEditTask}>Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button 
+                            className={`action-btn ${task.status === 'In Progress' ? 'active' : ''}`}
+                            onClick={() => handleUpdateStatus(task.id, 'In Progress')}
+                          >
+                            Start
+                          </button>
+                          <button 
+                            className={`action-btn ${task.status === 'Completed' ? 'active' : ''}`}
+                            onClick={() => handleUpdateStatus(task.id, 'Completed')}
+                          >
+                            Complete
+                          </button>
+                          <button className="action-btn" onClick={() => startEditTask(task)}>Edit</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
