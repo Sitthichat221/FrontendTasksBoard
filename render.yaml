@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: taskboard-frontend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: ""
+    startCommand: ""
+    healthCheckPath: /
+    envVars:
+      - key: VITE_API_URL
+        value: https://your-backend-url.onrender.com
+      - key: NODE_ENV
+        value: production

@@ -3,6 +3,9 @@ import axios from 'axios';
 // Prefer Vite env var for deployment; fallback to local dev
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+// Log API URL for debugging
+console.log('API URL:', API_URL);
+
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
