@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Prefer Vite env var for deployment; fallback to local dev
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+// Strict: use only VITE_API_URL to avoid accidental localhost fallback
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Log API URL for debugging
 console.log('API URL:', API_URL);
