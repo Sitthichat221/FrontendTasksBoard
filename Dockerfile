@@ -5,9 +5,9 @@ WORKDIR /app
 
 # Make build-time env vars available to Vite during npm run build
 ARG VITE_API_URL
-ARG NODE_ENV=production
-ENV VITE_API_URL=$VITE_API_URL \
-    NODE_ENV=$NODE_ENV
+ENV VITE_API_URL=$VITE_API_URL
+# Ensure devDependencies (like vite) are installed
+ENV NODE_ENV=development
 
 # Copy package files
 COPY package*.json ./
