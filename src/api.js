@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// Strict: use only VITE_API_URL to avoid accidental localhost fallback
+// Use only VITE_API_URL for configurability
 const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  console.error('VITE_API_URL is not set. Please define it in .env or hosting env.');
+}
 
 // Log API URL for debugging
 console.log('API URL:', API_URL);
