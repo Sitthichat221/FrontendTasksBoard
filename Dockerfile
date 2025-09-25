@@ -3,6 +3,12 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Make build-time env vars available to Vite during npm run build
+ARG VITE_API_URL
+ARG NODE_ENV=production
+ENV VITE_API_URL=$VITE_API_URL \
+    NODE_ENV=$NODE_ENV
+
 # Copy package files
 COPY package*.json ./
 
