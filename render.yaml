@@ -12,7 +12,7 @@ services:
     healthCheckPath: /
     envVars:
       - key: VITE_API_URL
-        value: https://your-backend-url.onrender.com
+        value: https://taskboard-ewkw.onrender.com
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
